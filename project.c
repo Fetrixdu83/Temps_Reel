@@ -38,7 +38,7 @@ void task1()
 {
   printf("task1\n");
   struct timespec next_activation, task_period;
-  set_task_period(&task_period);
+  set_task_period(&task1_period);
   int err = clock_gettime(CLOCK_MONOTONIC, &next_activation);
   printf("task1 : err = %d\n", err);
   struct timespec now;
@@ -52,8 +52,8 @@ void task1()
     process_one_activation();
 
     err = clock_gettime(CLOCK_MONOTONIC, &now);
-    printf("now: \t %ld\n",now.tv_nsec+now.tv_sec*10^9);
-    printf("newt: \t %ld\n",next_activation.tv_nsec+next_activation.tv_sec*10^9);
+    printf("1 now: \t %ld\n",now.tv_nsec+now.tv_sec*10^9);
+    printf("1 newt: \t %ld\n",next_activation.tv_nsec+next_activation.tv_sec*10^9);
     printf("1 \t %d\n", timespec_diff(&now, &next_activation));
 
     // compute the next activation time
@@ -69,9 +69,23 @@ void task2()
   int err = clock_gettime(CLOCK_MONOTONIC, &next_activation);
   printf("taskPeriod: s %ld\n ns: \t %ld\n",task_period.tv_sec, task_period.tv_nsec);
   printf("next activ: s %ld\n ns: \t %ld\n",next_activation.tv_sec, next_activation.tv_nsec);
-  
-  printf("task2 : err = %d\n", err);
-  assert(err == 0);
+  // execute a sequence of jobs forever
+  while (1)
+  {
+    // wait until release of next job
+    sleep_until_next_activation(&next_activation);
+    // call the actual application logic
+    process_one_activation();
+
+    err = clock_gettime(CLOCK_MONOTONIC, &now);
+    printf("2 now: \t %ld\n",now.tv_nsec+now.tv_sec*10^9);
+    printf("2 newt: \t %ld\n",next_activation.tv_nsec+next_activation.tv_sec*10^9);
+    printf("2 \t %d\n", timespec_diff(&now, &next_activation));
+
+    // compute the next activation time
+    timespec_add(&next_activation, &task_period);
+  }
+  //assert(err == 0);
   struct timespec now;
   
   // execute a sequence of jobs forever
